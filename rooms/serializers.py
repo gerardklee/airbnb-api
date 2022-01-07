@@ -7,8 +7,14 @@ class RoomSerializer(serializers.ModelSerializer):
     class Meta:
         model = Room
         fields = [
+            "pk",
             "name",
             "price",
             "instant_book",
             "user"
         ]
+
+class SingleRoomSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Room
+        exclude = ()
