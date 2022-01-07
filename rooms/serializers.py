@@ -7,10 +7,5 @@ class RoomSerializer(serializers.ModelSerializer):
     class Meta:
         model = Room
         exclude = (
-            
+            "modified",
         )
-
-class SingleRoomSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Room
-        exclude = ()
