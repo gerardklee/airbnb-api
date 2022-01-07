@@ -6,13 +6,9 @@ class RoomSerializer(serializers.ModelSerializer):
     user = UserSerializer()
     class Meta:
         model = Room
-        fields = [
-            "pk",
-            "name",
-            "price",
-            "instant_book",
-            "user"
-        ]
+        exclude = (
+            
+        )
 
 class SingleRoomSerializer(serializers.ModelSerializer):
     class Meta:
