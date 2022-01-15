@@ -25,3 +25,13 @@ class WriteRoomSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         return Room.objects.create(**validated_data)
+
+    def validate(self, attrs):
+        print("attrs: ", attrs)
+        print("self.instance: ", self.instance)
+        return attrs
+
+    def update(self, instance, validated_data):
+        print("instance: ", instance)
+        print("validated_data: ", validated_data)
+        pass
