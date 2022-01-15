@@ -13,6 +13,7 @@ def rooms_view(request):
         rooms = Room.objects.all()
         serializer = ReadRoomSerializer(rooms, many=True).data
         return Response(serializer)   
+
     elif request.method == "POST":
         # authenticate
         if not request.user.is_authenticated:
@@ -33,6 +34,7 @@ class RoomsView(APIView):
         rooms = Room.objects.all()
         serialized_rooms = ReadRoomSerializer(rooms, many=True)
         return Response(serialized_rooms.data)
+
     def post(self, request):
         # Authenticate is NOT required for this project
         if not request.user.is_authenticated:
@@ -44,15 +46,54 @@ class RoomsView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class SeeSingleRoomView(APIView):
-    def get(self, request, pk):
+class SingleRoomView(APIView):
+    def get_room(self, pk):
         try:
             room = Room.objects.get(pk=pk)
+            return room
+        except Room.DoesNotExist:
+            return None
+
+    def get(self, request, pk):
+        room = self.get_room(pk)
+        if room is not None:
             serializer = ReadRoomSerializer(room).data
             return Response(serializer)
-        except Room.DoesNotExist:
+        else:
             return Response(status=status.HTTP_404_NOT_FOUND)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
-    def post(self, request):
-        pass
+    def delete(self, request, pk):
+        room = self.get_room(pk)
+        serialized_room = ReadRoomSerializer(room).data
+
+        if not request.user.is_authenticated:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+        if room is not None:
+            room.delete()
+            return Response(data=serialized_room, status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk):
+        room = self.get_room(pk)
+        if room is not None:
+            serializer = WriteRoomSerializer(room, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(data=serializer.errors, status=status.HTTP_200_OK)
+            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
+
+
+
+
