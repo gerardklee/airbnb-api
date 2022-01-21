@@ -27,11 +27,8 @@ def user_view(request, pk):
             user_serializer = ReadUserSerializer(user)
             return Response(data=user_serializer.data, status=status.HTTP_200_OK)
         elif request.method == "PUT":
-            print("inside of PUT")
-            print("request_data: ", request.data)
             user_serializer = WriteUserSerializer(user, data=request.data, partial=True)
             if user_serializer.is_valid():
-                print("inside of is_valid")
                 user_serializer.save()
                 return Response(data=user_serializer.data, status=status.HTTP_200_OK)
             return Response(user_serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
