@@ -14,7 +14,6 @@ class UserSerializer(serializers.ModelSerializer):
             "is_staff",
             "is_active",
             "date_joined",
-            "favs"
         )
 
 class ReadUserSerializer(serializers.ModelSerializer):
@@ -29,7 +28,13 @@ class ReadUserSerializer(serializers.ModelSerializer):
             "is_staff",
             "is_active",
             "date_joined",
-            "favs"
+        )
+    
+class ReadFavSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            'favs',
         )
 
 class WriteUserSerializer(serializers.Serializer):
