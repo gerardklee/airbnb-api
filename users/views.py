@@ -1,9 +1,12 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
-from .serializers import ReadUserSerializer, WriteUserSerializer
+from .serializers import ReadUserSerializer, ReadFavSerializer, WriteUserSerializer
 from .models import User
+from rooms.serializers import RoomSerializer
+from rooms.models import Room
 
 class MeView(APIView):
     def get(self, request):
@@ -14,13 +17,12 @@ class MeView(APIView):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         return Response(status=status.HTTP_400_BAD_REQUEST)
     
+    # TODO: this has to handle some exceptions
     def put(self, request):
-        print("me_view")
         return Response(status=status.HTTP_200_OK)
 
 @api_view(["GET", "PUT"])
 def user_view(request, pk):
-    print("user_view")
     try:
         user = User.objects.get(pk=pk)
         if request.method == "GET":
@@ -32,5 +34,25 @@ def user_view(request, pk):
                 user_serializer.save()
                 return Response(data=user_serializer.data, status=status.HTTP_200_OK)
             return Response(user_serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
+    except User.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+@api_view(["GET", "PUT"])
+def toggle_fav(request, pk):
+    try:
+        user = User.objects.get(pk=pk)
+        if request.method == "GET":
+            fav_rooms_serializer = RoomSerializer(user.favs.all(), many=True)
+            return Response(data=fav_rooms_serializer.data, status=status.HTTP_200_OK)
+        elif request.method == "PUT":
+            room_id = request.data.get("id", None)
+            try:
+                room = Room.objects.get(pk=room_id)
+                room_serializer = RoomSerializer(room)
+                user.favs.add(room)
+                user.save()
+                return Response(data=room_serializer.data, status=status.HTTP_200_OK)
+            except Room.DoesNotExist:
+                return Response(status=status.HTTP_404_NOT_FOUND)
     except User.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
