@@ -4,14 +4,14 @@ from rest_framework.generics import RetrieveAPIView
 from rest_framework.views import APIView
 from rest_framework import status
 from .models import Room
-from .serializers import ReadRoomSerializer, WriteRoomSerializer
+from .serializers import RoomSerializer
 
 # functional view of http methods
 @api_view(["GET", "POST"])
 def rooms_view(request):
     if request.method == "GET":
         rooms = Room.objects.all()
-        serializer = ReadRoomSerializer(rooms, many=True).data
+        serializer = RoomSerializer(rooms, many=True).data
         return Response(serializer)   
 
     elif request.method == "POST":
@@ -19,10 +19,10 @@ def rooms_view(request):
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
-        serializer = WriteRoomSerializer(data=request.data)
+        serializer = RoomSerializer(data=request.data)
         if serializer.is_valid():
             room = serializer.save(user=request.user)
-            room_serializer = ReadRoomSerializer(room).data
+            room_serializer = RoomSerializer(room).data
             return Response(data=room_serializer, status=status.HTTP_200_OK)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -32,14 +32,14 @@ def rooms_view(request):
 class RoomsView(APIView):
     def get(self, request):
         rooms = Room.objects.all()
-        serialized_rooms = ReadRoomSerializer(rooms, many=True)
+        serialized_rooms = RoomSerializer(rooms, many=True)
         return Response(serialized_rooms.data)
 
     def post(self, request):
         # Authenticate is NOT required for this project
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
-        serializer = WriteRoomSerializer(data=request.data)
+        serializer = RoomSerializer(data=request.data)
         if serializer.is_valid():
             # TODO: find out about save(user=request.user)
             serializer.save()
@@ -57,7 +57,7 @@ class SingleRoomView(APIView):
     def get(self, request, pk):
         room = self.get_room(pk)
         if room is not None:
-            serializer = ReadRoomSerializer(room).data
+            serializer = RoomSerializer(room).data
             return Response(serializer)
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -65,7 +65,7 @@ class SingleRoomView(APIView):
 
     def delete(self, request, pk):
         room = self.get_room(pk)
-        serialized_room = ReadRoomSerializer(room).data
+        serialized_room = RoomSerializer(room).data
 
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -80,10 +80,10 @@ class SingleRoomView(APIView):
     def put(self, request, pk):
         room = self.get_room(pk)
         if room is not None:
-            serializer = WriteRoomSerializer(room, data=request.data, partial=True)
+            serializer = RoomSerializer(room, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
-                return Response(data=ReadRoomSerializer(room).data, status=status.HTTP_200_OK)
+                return Response(data=RoomSerializer(room).data, status=status.HTTP_200_OK)
             return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
