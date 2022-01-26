@@ -8,6 +8,21 @@ from .models import User
 from rooms.serializers import RoomSerializer
 from rooms.models import Room
 
+class UsersView(APIView):
+    def get(self, request):
+        users = User.objects.all()
+        users_serializer = ReadUserSerializer(users, many=True)
+        return Response(data=users_serializer.data, status=status.HTTP_200_OK)
+    
+    def post(self, request):
+        user = request.data
+        user_serializer = WriteUserSerializer(data=user)
+        if user_serializer.is_valid():
+            user_serializer.save()
+            return Response(data=user_serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(data=user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class MeView(APIView):
     def get(self, request):
         my_serializer = ReadUserSerializer(request.user).data
