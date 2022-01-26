@@ -23,7 +23,7 @@ def rooms_view(request):
         if serializer.is_valid():
             room = serializer.save(user=request.user)
             room_serializer = RoomSerializer(room).data
-            return Response(data=room_serializer, status=status.HTTP_200_OK)
+            return Response(data=room_serializer, status=status.HTTP_201_CREATED)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         
