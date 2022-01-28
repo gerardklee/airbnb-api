@@ -1,12 +1,15 @@
+import jwt
+from django.conf import settings
+from django.contrib.auth import authenticate
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 from .serializers import ReadUserSerializer, ReadFavSerializer, WriteUserSerializer
-from .models import User
 from rooms.serializers import RoomSerializer
 from rooms.models import Room
+from .models import User
 
 class UsersView(APIView):
     def get(self, request):
@@ -71,3 +74,23 @@ def toggle_fav(request, pk):
                 return Response(status=status.HTTP_404_NOT_FOUND)
     except User.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
+
+@api_view(["POST"])
+def login(request):
+    username = request.data.get("username")
+    password = request.data.get("password")
+    if not username or not password:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    
+    '''
+    # TODO: authenticate doesn't work.. find out later and move onto JWT
+    user = authenticate(username=username, password=password)
+    if not user:
+        return Response(data=request.data, status=status.HTTP_401_UNAUTHORIZED)
+    else:
+        encoded_jwt = jwt.encode({ "id": user.pk }, settings.SECRET_KEY, algorithm="HS256")
+        return Response(data={ "token": encoded_jwt })
+    '''
+    user = User.objects.get(username=username)
+    encoded_jwt = jwt.encode({ "id": user.pk }, settings.SECRET_KEY, algorithm="HS256")
+    return Response(data={ "token": encoded_jwt })
