@@ -3,37 +3,20 @@ from rest_framework.response import Response
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.views import APIView
 from rest_framework import status
+from rest_framework.pagination import PageNumberPagination
 from .models import Room
 from .serializers import RoomSerializer
-
-# functional view of http methods
-@api_view(["GET", "POST"])
-def rooms_view(request):
-    if request.method == "GET":
-        rooms = Room.objects.all()
-        serializer = RoomSerializer(rooms, many=True).data
-        return Response(serializer)   
-
-    elif request.method == "POST":
-        # authenticate
-        if not request.user.is_authenticated:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-
-        serializer = RoomSerializer(data=request.data)
-        if serializer.is_valid():
-            room = serializer.save(user=request.user)
-            room_serializer = RoomSerializer(room).data
-            return Response(data=room_serializer, status=status.HTTP_201_CREATED)
-        else:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        
 
 # class view of http methods
 class RoomsView(APIView):
     def get(self, request):
+        paginator = PageNumberPagination()
+        paginator.page_size = 20
         rooms = Room.objects.all()
-        serialized_rooms = RoomSerializer(rooms, many=True)
-        return Response(serialized_rooms.data)
+        results = paginator.paginate_queryset(rooms, request)
+        serialized_rooms = RoomSerializer(results, many=True)
+        #return Response(serialized_rooms.data)
+        return paginator.get_paginated_response(serialized_rooms.data)
 
     def post(self, request):
         # Authenticate is NOT required for this project
@@ -88,6 +71,39 @@ class SingleRoomView(APIView):
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
         return Response(status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(["GET"])
+def room_search(request):
+    paginator = PageNumberPagination()
+    paginator.page_size = 10
+    rooms = Room.objects.filter()
+    results = paginator.paginate_queryset(rooms, request)
+    serialized_rooms = RoomSerializer(results, many=True)
+    return paginator.get_paginated_response(serialized_rooms.data)
+
+
+# functional view of http methods
+# function below is not being used
+@api_view(["GET", "POST"])
+def rooms_view(request):
+    if request.method == "GET":
+        rooms = Room.objects.all()
+        serializer = RoomSerializer(rooms, many=True).data
+        return Response(serializer)   
+
+    elif request.method == "POST":
+        # authenticate
+        if not request.user.is_authenticated:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+        serializer = RoomSerializer(data=request.data)
+        if serializer.is_valid():
+            room = serializer.save(user=request.user)
+            room_serializer = RoomSerializer(room).data
+            return Response(data=room_serializer, status=status.HTTP_201_CREATED)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
 
 
 
