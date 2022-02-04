@@ -5,6 +5,7 @@ from .models import Room
 # Below class unifies the read room serializer and the write room serializer
 class RoomSerializer(serializers.ModelSerializer):
     user = UserSerializer()
+    is_fav = serializers.SerializerMethodField()
     class Meta:
         model = Room
         exclude = (
@@ -18,7 +19,6 @@ class RoomSerializer(serializers.ModelSerializer):
         )
     def validate(self, data):
         # validate for update/if there is instance on the serializer
-        print("validate starts")
         if self.instance:
             check_in = data.get("check_in", self.instance.check_in)
             check_out = data.get("check_out", self.instance.check_out)
@@ -31,7 +31,15 @@ class RoomSerializer(serializers.ModelSerializer):
         if check_in == check_out:
             raise serializers.ValidationError("Not enough time between changes")
         return data
-
+    
+    # currently, the user is always anonymous. fix it later
+    def get_is_fav(self, obj):
+        request = self.context.get("request")
+        if request:
+            user = request.user
+            if user.is_authenticated:
+                return obj in user.favs.all()
+        return False
 class ReadRoomSerializer(serializers.ModelSerializer):
     user = UserSerializer()
     class Meta:
@@ -55,7 +63,6 @@ class WriteRoomSerializer(serializers.Serializer):
 
     def validate(self, data):
         # validate for update/if there is instance on the serializer
-        print("validate starts")
         if self.instance:
             check_in = data.get("check_in", self.instance.check_in)
             check_out = data.get("check_out", self.instance.check_out)
