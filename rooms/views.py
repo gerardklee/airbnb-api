@@ -14,7 +14,7 @@ class RoomsView(APIView):
         paginator.page_size = 20
         rooms = Room.objects.all()
         results = paginator.paginate_queryset(rooms, request)
-        serialized_rooms = RoomSerializer(results, many=True)
+        serialized_rooms = RoomSerializer(results, many=True, context={'request': request})
         #return Response(serialized_rooms.data)
         return paginator.get_paginated_response(serialized_rooms.data)
 
@@ -42,9 +42,7 @@ class SingleRoomView(APIView):
         if room is not None:
             serializer = RoomSerializer(room).data
             return Response(serializer)
-        else:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
     def delete(self, request, pk):
         room = self.get_room(pk)
@@ -56,9 +54,7 @@ class SingleRoomView(APIView):
         if room is not None:
             room.delete()
             return Response(data=serialized_room, status=status.HTTP_200_OK)
-        else:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
     def put(self, request, pk):
         room = self.get_room(pk)
@@ -68,9 +64,7 @@ class SingleRoomView(APIView):
                 serializer.save()
                 return Response(data=RoomSerializer(room).data, status=status.HTTP_200_OK)
             return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        else:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
 @api_view(["GET"])
 def room_search(request):
@@ -90,7 +84,6 @@ def room_search(request):
         filter_kwargs['bedrooms__gte'] = bedrooms
     if bathrooms is not None:
         filter_kwargs['bathrooms__gte'] = bathrooms
-    print(filter_kwargs)
     paginator = PageNumberPagination()
     paginator.page_size = 10
     rooms = Room.objects.filter(**filter_kwargs)
