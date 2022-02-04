@@ -31,9 +31,7 @@ class MeView(APIView):
         my_serializer = ReadUserSerializer(request.user).data
         if request.user.is_authenticated:
             return Response(data=my_serializer, status=status.HTTP_200_OK)
-        else:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
     
     # TODO: this has to handle some exceptions
     def put(self, request):
